@@ -1181,56 +1181,7 @@ const tipoLabel = { opinion:'Opinión', pregunta:'Pregunta', mejora:'Propuesta d
 
 let opiniones = [];
 
-function enviarOpinion() {
-  const nombre = document.getElementById('inp-nombre').value.trim() || 'Anónimo';
-  const tipo = document.getElementById('inp-tipo').value;
-  const comentario = document.getElementById('inp-comentario').value.trim();
-  const destacado = document.getElementById('inp-destacado').value.trim();
 
-  if (!comentario) {
-    document.getElementById('inp-comentario').style.borderColor = 'var(--rojo)';
-    setTimeout(() => document.getElementById('inp-comentario').style.borderColor = '', 1500);
-    return;
-  }
-  if (!currentRating) {
-    document.getElementById('stars').style.animation = 'none';
-    document.getElementById('rating-label').textContent = '⚠ Por favor califica la exposición';
-    document.getElementById('rating-label').style.color = 'var(--rojo)';
-    setTimeout(() => { document.getElementById('rating-label').style.color = ''; }, 2000);
-    return;
-  }
-
-  opiniones.push({ nombre, tipo, comentario, destacado, rating: currentRating, hora: new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'}) });
-  renderOpiniones();
-
-  // Reset
-  document.getElementById('inp-nombre').value = '';
-  document.getElementById('inp-comentario').value = '';
-  document.getElementById('inp-destacado').value = '';
-  currentRating = 0;
-  updateStars(0);
-  document.getElementById('rating-label').textContent = 'Selecciona una calificación';
-
-  const t = document.getElementById('toast');
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-function renderOpiniones() {
-  const cont = document.getElementById('opiniones-container');
-  const list = document.getElementById('opiniones-list');
-  cont.style.display = 'block';
-  list.innerHTML = opiniones.slice().reverse().map(o => `
-    <div class="opinion-item">
-      <div class="opinion-header">
-        <span class="opinion-nombre">${o.nombre}</span>
-        <span class="opinion-rating-mini">${'★'.repeat(o.rating)}${'☆'.repeat(5-o.rating)} · ${o.hora}</span>
-      </div>
-      <div class="opinion-texto">${o.comentario}${o.destacado ? `<br><br><em style="color:var(--acento)">Lo más interesante: ${o.destacado}</em>` : ''}</div>
-      <div class="opinion-tipo">${tipoEmoji[o.tipo]} ${tipoLabel[o.tipo]}</div>
-    </div>
-  `).join('');
-}
 \\ NUEVO CODIGO
 
 
