@@ -1181,10 +1181,6 @@ const tipoLabel = { opinion:'Opinión', pregunta:'Pregunta', mejora:'Propuesta d
 
 let opiniones = [];
 
-
-\\ NUEVO CODIGO
-
-
 function enviarOpinion() {
   const nombre = document.getElementById('inp-nombre').value.trim() || 'Anónimo';
   const tipo = document.getElementById('inp-tipo').value;
@@ -1204,39 +1200,10 @@ function enviarOpinion() {
     return;
   }
 
-  const horaActual = new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'});
-
-  // 1. Render inmediato en la pantalla del usuario (Tu lógica local)
-  opiniones.push({ nombre, tipo, comentario, destacado, rating: currentRating, hora: horaActual });
+  opiniones.push({ nombre, tipo, comentario, destacado, rating: currentRating, hora: new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'}) });
   renderOpiniones();
 
-  // 2. ENVÍO A FORMSPREE CON FETCH (De forma invisible)
-  // REEMPLAZA EL ENLACE DE ABAJO POR EL QUE TE DE FORMSPREE (ej. https://formspree.io/f/xrbbjzd)
-  fetch("https://formspree.io/f/mredqwwe", {
-    method: "POST",
-    headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-    },
-    body: JSON.stringify({
-        Nombre: nombre,
-        Tipo: tipoLabel[tipo], 
-        Calificacion: '★'.repeat(currentRating),
-        Reseña: comentario,
-        Lo_Mas_Interesante: destacado,
-        Hora: horaActual
-    })
-  })
-  .then(response => {
-    if (response.ok) {
-        console.log("¡Reseña respaldada con éxito en Formspree!");
-    } else {
-        console.error("Hubo un problema al enviar a Formspree.");
-    }
-  })
-  .catch(error => console.error("Error de red:", error));
-
-  // Reset de los campos (Tu código original intacto)
+  // Reset
   document.getElementById('inp-nombre').value = '';
   document.getElementById('inp-comentario').value = '';
   document.getElementById('inp-destacado').value = '';
@@ -1248,6 +1215,7 @@ function enviarOpinion() {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+
 // ── SCROLL REVEAL ──────────────────────────────────────────────────
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
