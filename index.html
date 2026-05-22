@@ -1181,17 +1181,25 @@ const tipoLabel = { opinion:'Opinión', pregunta:'Pregunta', mejora:'Propuesta d
 
 let opiniones = [];
 
-function enviarOpinion() {
-  const nombre = document.getElementById('inp-nombre').value.trim() || 'Anónimo';
-  const tipo = document.getElementById('inp-tipo').value;
-  const comentario = document.getElementById('inp-comentario').value.trim();
-  const destacado = document.getElementById('inp-destacado').value.trim();
+// ── OPINIONES ────────────────────────────────────────────────────────
+const tipoEmoji = { opinion:'💬', pregunta:'❓', mejora:'💡', pqr:'📋', curiosidad:'🔬' };
+const tipoLabel = { opinion:'Opinión', pregunta:'Pregunta', mejora:'Propuesta de mejora', pqr:'PQR', curiosidad:'Dato curioso' };
+let opiniones = [];
 
+async function enviarOpinion() {
+  const nombre     = document.getElementById('inp-nombre').value.trim() || 'Anónimo';
+  const tipo       = document.getElementById('inp-tipo').value;
+  const comentario = document.getElementById('inp-comentario').value.trim();
+  const destacado  = document.getElementById('inp-destacado').value.trim();
+
+  // Validación: comentario vacío
   if (!comentario) {
     document.getElementById('inp-comentario').style.borderColor = 'var(--rojo)';
     setTimeout(() => document.getElementById('inp-comentario').style.borderColor = '', 1500);
     return;
   }
+
+  // Validación: calificación vacía
   if (!currentRating) {
     document.getElementById('stars').style.animation = 'none';
     document.getElementById('rating-label').textContent = '⚠ Por favor califica la exposición';
@@ -1200,13 +1208,36 @@ function enviarOpinion() {
     return;
   }
 
-  opiniones.push({ nombre, tipo, comentario, destacado, rating: currentRating, hora: new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'}) });
+  const hora = new Date().toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' });
+
+  // 1️⃣  Guardar localmente y renderizar
+  opiniones.push({ nombre, tipo, comentario, destacado, rating: currentRating, hora });
   renderOpiniones();
 
-  // Reset
-  document.getElementById('inp-nombre').value = '';
+  // 2️⃣  Enviar a Formspree → llega a tu correo
+  try {
+    await fetch('https://formspree.io/f/mnnvaqrw', {   // ← tu endpoint Formspree
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        nombre,
+        tipo:       tipoLabel[tipo] || tipo,
+        comentario,
+        destacado:  destacado || '(no indicado)',
+        calificacion: `${'★'.repeat(currentRating)}${'☆'.repeat(5 - currentRating)} (${currentRating}/5)`,
+        hora,
+        _subject:   `⭐ Nueva opinión de ${nombre} — Casco Híbrido UIS`
+      })
+    });
+  } catch (err) {
+    console.warn('Formspree no disponible (sin conexión o bloqueado):', err);
+    // La opinión igual queda visible en pantalla; el fallo de red no interrumpe al usuario
+  }
+
+  // 3️⃣  Limpiar formulario
+  document.getElementById('inp-nombre').value    = '';
   document.getElementById('inp-comentario').value = '';
-  document.getElementById('inp-destacado').value = '';
+  document.getElementById('inp-destacado').value  = '';
   currentRating = 0;
   updateStars(0);
   document.getElementById('rating-label').textContent = 'Selecciona una calificación';
@@ -1220,7 +1251,7 @@ function enviarOpinion() {
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
 }, { threshold: 0.1 });
-
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 </script>
 </body>
