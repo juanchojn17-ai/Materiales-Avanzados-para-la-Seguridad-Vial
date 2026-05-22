@@ -1181,7 +1181,7 @@ const tipoLabel = { opinion:'Opinión', pregunta:'Pregunta', mejora:'Propuesta d
 
 let opiniones = [];
 
-function enviarOpinion() {
+async function enviarOpinion() {
   const nombre = document.getElementById('inp-nombre').value.trim() || 'Anónimo';
   const tipo = document.getElementById('inp-tipo').value;
   const comentario = document.getElementById('inp-comentario').value.trim();
@@ -1193,12 +1193,44 @@ function enviarOpinion() {
     return;
   }
   if (!currentRating) {
-    document.getElementById('stars').style.animation = 'none';
     document.getElementById('rating-label').textContent = '⚠ Por favor califica la exposición';
     document.getElementById('rating-label').style.color = 'var(--rojo)';
     setTimeout(() => { document.getElementById('rating-label').style.color = ''; }, 2000);
     return;
   }
+
+  // ── ENVÍO A FORMSPREE ──────────────────────────────────────────
+  try {
+    await fetch('https://formspree.io/f/mredqwwe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        nombre,
+        calificacion: currentRating + ' / 5 estrellas',
+        tipo_comentario: tipoLabel[tipo],
+        comentario,
+        lo_mas_interesante: destacado || 'No especificado'
+      })
+    });
+  } catch (e) {
+    console.error('Error enviando a Formspree:', e);
+  }
+  // ──────────────────────────────────────────────────────────────
+
+  opiniones.push({ nombre, tipo, comentario, destacado, rating: currentRating, hora: new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'}) });
+  renderOpiniones();
+
+  document.getElementById('inp-nombre').value = '';
+  document.getElementById('inp-comentario').value = '';
+  document.getElementById('inp-destacado').value = '';
+  currentRating = 0;
+  updateStars(0);
+  document.getElementById('rating-label').textContent = 'Selecciona una calificación';
+
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
 
   opiniones.push({ nombre, tipo, comentario, destacado, rating: currentRating, hora: new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'}) });
   renderOpiniones();
